@@ -1,7 +1,8 @@
 (ns org.rathore.amit.utils.logger
   (:import (java.io FileWriter BufferedWriter File)
 	    (org.apache.commons.io FileUtils))
-  (:use org.rathore.amit.utils.config))
+  (:use org.rathore.amit.utils.config)
+  (:use org.rathore.amit.utils.sql))
 
 (defn spit [f content] 
   (let [file (File. f)]
@@ -12,7 +13,8 @@
 	(.write bw (str content "\n"))))))
 
 (defn log-message [& message-tokens]
-  (let [message (apply str (interleave message-tokens (repeat " ")))]
+  (let [timestamp-prefix (str (timestamp-for-sql (System/currentTimeMillis)) ": ")
+	message (apply str timestamp-prefix (interleave message-tokens (repeat " ")))]
     (if (should-log-to-console?) 
       (println message))
     (spit (log-file) message)))
