@@ -20,4 +20,4 @@
   (with-config
    (let [dirname (:logs-dir *rathore-utils-config*)
 	 prefix (:log-filename-prefix *rathore-utils-config*)]
-     (str  dirname "/"  prefix (process-pid) ".log"))))
+     (str  dirname "/"  prefix "_" (process-pid) ".log"))))
