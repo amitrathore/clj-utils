@@ -13,7 +13,7 @@
 
 (defn log-message [& message-tokens]
   (let [message (apply str (interleave message-tokens (repeat " ")))]
-    (if (log-to-console?) 
+    (if (should-log-to-console?) 
       (println message))
     (spit (log-file) message)))
 

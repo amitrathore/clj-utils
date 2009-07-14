@@ -12,7 +12,7 @@
      (throw (Exception. "*rathore-utils-config* is not bound appropriately!"))
      (do ~@exprs)))
 
-(defn log-to-console? []
+(defn should-log-to-console? []
   (with-config
    (:log-to-console *rathore-utils-config*)))
 
