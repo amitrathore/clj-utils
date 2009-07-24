@@ -37,6 +37,4 @@
   (with-connection connection q-host q-username q-password
     (with-open [messages (queue-seq connection q-name)]
       (doseq [message messages]
-	(do
-	  (println "message:" message)
-	  (the-function (json/decode-from-str message)))))))
+	(the-function (json/decode-from-str message))))))
