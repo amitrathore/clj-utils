@@ -16,13 +16,16 @@
       (.basicConsume ch queue-name consumer)
       (delivery-seq ch consumer))))
 
+(defn new-connection-for [q-host q-username q-password]
+  (let [params (doto (ConnectionParameters.)
+		 (.setVirtualHost "/")
+		 (.setUsername q-username)
+		  (.setPassword q-password))
+	factory (ConnectionFactory. params)]
+    (.newConnection factory q-host)))
+
 (defmacro with-connection [connection q-host q-username q-password & exprs]
-  `(with-open [~connection (let [params# (doto (ConnectionParameters.)
-					 (.setVirtualHost "/")
-					 (.setUsername ~q-username)
-					 (.setPassword ~q-password))
-				factory# (ConnectionFactory. params#)]
-			    (.newConnection factory# ~q-host))]
+  `(with-open [~connection (new-connection-for ~q-host ~q-username ~q-password)]
      (do ~@exprs)))
 
 (defn send-on-transport-amqp [q-host q-username q-password q-name q-message-object]
