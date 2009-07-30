@@ -3,6 +3,7 @@
 	    (org.apache.commons.io FileUtils))
   (:use org.rathore.amit.utils.config)
   (:use org.rathore.amit.utils.sql)
+  (:use clojure.contrib.str-utils)
   (:use org.rathore.amit.utils.mailer))
 
 (declare email-exception)
@@ -38,6 +39,6 @@
 
 (defn email-exception [e]
   (let [subject (str (error-notification-subject-prefix) " " (.getMessage e))
-	body (str (timestamp-for-now) "\n" (stacktrace e))]
+	body (str-join "\n" [(timestamp-for-now) (stacktrace e) (str "\nAlso logged to" (log-file))])]
     (send-email-async (error-notification-from) (error-notification-to) subject body)))
 
