@@ -2,7 +2,10 @@
   (:import (java.io FileWriter BufferedWriter File)
 	    (org.apache.commons.io FileUtils))
   (:use org.rathore.amit.utils.config)
-  (:use org.rathore.amit.utils.sql))
+  (:use org.rathore.amit.utils.sql)
+  (:use org.rathore.amit.utils.mailer))
+
+(declare email-exception)
 
 (defn spit [f content] 
   (let [file (File. f)]
@@ -13,7 +16,7 @@
 	(.write bw (str content "\n"))))))
 
 (defn log-message [& message-tokens]
-  (let [timestamp-prefix (str (timestamp-for-sql (System/currentTimeMillis)) ": ")
+  (let [timestamp-prefix (str (timestamp-for-now) ": ")
 	message (apply str timestamp-prefix (interleave message-tokens (repeat " ")))]
     (if (should-log-to-console?) 
       (println message))
@@ -29,4 +32,12 @@
 		     (map #(str (.toString %) "\n") (.getStackTrace e))))))
 
 (defn log-exception [e]
-  (log-message (stacktrace e)))
+  (log-message (stacktrace e))
+  (if (notify-on-exception?)
+    (email-exception e)))
+
+(defn email-exception [e]
+  (let [subject (str (error-notification-subject-prefix) " " (.getMessage e))
+	body (str (timestamp-for-now) "\n" (stacktrace e))]
+    (send-email-async (error-notification-from) (error-notification-to) subject body)))
+
