@@ -1,6 +1,7 @@
 (ns org.rathore.amit.utils.logger
   (:import (java.io FileWriter BufferedWriter File)
-	    (org.apache.commons.io FileUtils))
+	    (org.apache.commons.io FileUtils)
+	    (java.net InetAddress))
   (:use org.rathore.amit.utils.config)
   (:use org.rathore.amit.utils.sql)
   (:use clojure.contrib.str-utils)
@@ -39,6 +40,6 @@
 
 (defn email-exception [e]
   (let [subject (str (error-notification-subject-prefix) " " (.getMessage e))
-	body (str-join "\n" [(timestamp-for-now) (stacktrace e) (str "\nAlso logged to" (log-file))])]
+	body (str-join "\n" [(timestamp-for-now) (stacktrace e) (str "\nAlso logged to" (log-file) " on " (InetAddress/getLocalHost))])]
     (send-email-async (error-notification-from) (error-notification-to) subject body)))
 
