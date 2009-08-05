@@ -1,0 +1,9 @@
+This has a bunch of utils I commonly use on other projects. They're grouped into areas, and each corresponds pretty much to one file of source code. The following are the broad ones:
+
+* logger - stuff I've written to help me log messages and exceptions to a file
+* mailer - helpful wrapper around the postal clojure library (which in turn wraps the JavaMail library)
+* sql - helper functions to work with (shudder) SQL
+* rabbitmq - helper functions to work with AMQP in general, and RabbitMQ in particular
+* file - utilities to help working with the filesystem
+* process - helpers to work with OS processes
+* clojure - helper functions to enhance the clojure language

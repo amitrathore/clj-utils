@@ -1,0 +1,3 @@
+[submodule "lib/clojure/postal"]
+	path = lib/clojure/postal
+	url = git://github.com/drewr/postal.git
