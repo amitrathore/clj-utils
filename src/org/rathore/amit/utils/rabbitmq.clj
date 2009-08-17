@@ -1,6 +1,7 @@
 (ns org.rathore.amit.utils.rabbitmq
   (:import (com.rabbitmq.client ConnectionParameters ConnectionFactory MessageProperties QueueingConsumer)))
-(require '(org.danlarkin [json :as json]))
+
+(use 'org.rathore.amit.utils.clojure)
 
 (defn delivery-seq [ch q]
   (lazy-seq
@@ -34,10 +35,10 @@
       (doto channel
 	;q-declare args: queue-name, passive, durable, exclusive, autoDelete other-args-map
 	(.queueDeclare q-name); true false false auto-delete-queue (new java.util.HashMap))
-	(.basicPublish "" q-name false true nil (.getBytes (json/encode-to-str q-message-object)))))))
+	(.basicPublish "" q-name false true nil (.getBytes (str q-message-object)))))))
 
 (defn start-queue-message-handler-for-function-amqp [q-host q-username q-password q-name the-function]
   (with-connection connection q-host q-username q-password
     (with-open [messages (queue-seq connection q-name)]
       (doseq [message messages]
-	(the-function (json/decode-from-str message))))))
+	(the-function (read-clojure-str message))))))

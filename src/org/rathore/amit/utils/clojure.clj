@@ -1,4 +1,5 @@
-(ns org.rathore.amit.utils.clojure)
+(ns org.rathore.amit.utils.clojure
+  (:import (java.io PushbackReader StringReader)))
 
 (defn var-ize [var-vals]
   (loop [ret [] vvs (seq var-vals)]
@@ -28,3 +29,11 @@
   `(defn ~method-name [~(destructured-hash params)]
      (do
        ~@exprs)))
+
+(defn read-clojure-str [object-str]
+  (read (PushbackReader. (StringReader. object-str))))
+
+(defmacro defmemoized [fn-name args & body]
+  `(def ~fn-name (memoize (fn ~args 
+			    (do
+			      ~@body)))))
