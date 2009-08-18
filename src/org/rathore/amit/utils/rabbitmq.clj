@@ -29,16 +29,15 @@
   `(with-open [~connection (new-connection-for ~q-host ~q-username ~q-password)]
      (do ~@exprs)))
 
-(defn send-on-transport-amqp [q-host q-username q-password q-name q-message-object]
+(defn send-on-transport-amqp [q-host q-username q-password q-name q-message-string]
   (with-connection connection q-host q-username q-password
     (with-open [channel (.createChannel connection)]
       (doto channel
 	;q-declare args: queue-name, passive, durable, exclusive, autoDelete other-args-map
 	(.queueDeclare q-name); true false false auto-delete-queue (new java.util.HashMap))
-	(.basicPublish "" q-name false true nil (.getBytes (str q-message-object)))))))
+	(.basicPublish "" q-name false true nil (.getBytes q-message-string))))))
 
 (defn start-queue-message-handler-for-function-amqp [q-host q-username q-password q-name the-function]
   (with-connection connection q-host q-username q-password
-    (let [messages (queue-seq connection q-name)]
-      (doseq [message messages]
-	(the-function (read-clojure-str message))))))
+    (doseq [message (queue-seq connection q-name)]
+      (the-function message))))
