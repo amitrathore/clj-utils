@@ -39,6 +39,6 @@
 
 (defn start-queue-message-handler-for-function-amqp [q-host q-username q-password q-name the-function]
   (with-connection connection q-host q-username q-password
-    (with-open [messages (queue-seq connection q-name)]
+    (let [messages (queue-seq connection q-name)]
       (doseq [message messages]
 	(the-function (read-clojure-str message))))))
