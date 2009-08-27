@@ -1,21 +1,13 @@
 (ns org.rathore.amit.utils.logger
   (:import (java.io FileWriter BufferedWriter File)
-	    (org.apache.commons.io FileUtils)
 	    (java.net InetAddress))
   (:use org.rathore.amit.utils.config)
+  (:use org.rathore.amit.utils.file)
   (:use org.rathore.amit.utils.sql)
   (:use clojure.contrib.str-utils)
   (:use org.rathore.amit.utils.mailer))
 
 (declare email-exception)
-
-(defn spit [f content] 
-  (let [file (File. f)]
-    (if (not (.exists file))
-      (FileUtils/touch file))
-    (with-open [#^FileWriter fw (FileWriter. f true)]
-      (with-open [#^BufferedWriter bw (BufferedWriter. fw)]
-	(.write bw (str content "\n"))))))
 
 (defn log-message [& message-tokens]
   (let [timestamp-prefix (str (timestamp-for-now) ": ")
