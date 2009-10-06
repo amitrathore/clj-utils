@@ -1,7 +1,9 @@
 (ns org.rathore.amit.utils.rabbitmq
   (:import (com.rabbitmq.client ConnectionParameters ConnectionFactory MessageProperties QueueingConsumer)))
 
+
 (use 'org.rathore.amit.utils.clojure)
+(use 'org.rathore.amit.utils.logger)
 
 (defn delivery-seq [ch q]
   (lazy-seq
@@ -29,13 +31,19 @@
   `(with-open [~connection (new-connection-for ~q-host ~q-username ~q-password)]
      (do ~@exprs)))
 
+(defn drop-on-channel [channel q-name q-message-string]
+  (doto channel
+    ;q-declare args: queue-name, passive, durable, exclusive, autoDelete other-args-map
+    (.queueDeclare q-name); true false false auto-delete-queue (new java.util.HashMap))
+    (.basicPublish "" q-name false true nil (.getBytes q-message-string))))
+
+(defn drop-on-new-channel [connection q-name q-message-string]
+  (with-open [channel (.createChannel connection)]
+    (drop-on-channel channel q-name q-message-string)))
+
 (defn send-on-transport-amqp [q-host q-username q-password q-name q-message-string]
   (with-connection connection q-host q-username q-password
-    (with-open [channel (.createChannel connection)]
-      (doto channel
-	;q-declare args: queue-name, passive, durable, exclusive, autoDelete other-args-map
-	(.queueDeclare q-name); true false false auto-delete-queue (new java.util.HashMap))
-	(.basicPublish "" q-name false true nil (.getBytes q-message-string))))))
+    (drop-on-new-channel connection q-name q-message-string)))
 
 (defn start-queue-message-handler-for-function-amqp [q-host q-username q-password q-name the-function]
   (with-connection connection q-host q-username q-password
