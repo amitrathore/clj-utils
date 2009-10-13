@@ -31,11 +31,12 @@
   `(with-open [~connection (new-connection-for ~q-host ~q-username ~q-password)]
      (do ~@exprs)))
 
-(defn drop-on-channel [channel q-name q-message-string]
-  (doto channel
+(defn drop-on-channel [chan q-name q-message-string]
+  (with-open [channel chan]
+    (doto channel
     ;q-declare args: queue-name, passive, durable, exclusive, autoDelete other-args-map
-    (.queueDeclare q-name); true false false auto-delete-queue (new java.util.HashMap))
-    (.basicPublish "" q-name false true nil (.getBytes q-message-string))))
+      (.queueDeclare q-name); true false false auto-delete-queue (new java.util.HashMap))
+      (.basicPublish "" q-name false true nil (.getBytes q-message-string)))))
 
 (defn drop-on-new-channel [connection q-name q-message-string]
   (with-open [channel (.createChannel connection)]
