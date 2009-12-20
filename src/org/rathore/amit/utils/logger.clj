@@ -35,3 +35,9 @@
 	body (str-join "\n" [(timestamp-for-now) (stacktrace e) (str "\nAlso logged to" (log-file) " on " (InetAddress/getLocalHost))])]
     (send-email-async (error-notification-from) (error-notification-to) subject body)))
 
+
+(defmacro with-exception-logging [& exprs]
+  (try
+   (do ~@exprs)
+   (catch Exception e
+     (log-exception e))))
