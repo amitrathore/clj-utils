@@ -37,7 +37,7 @@
 
 
 (defmacro with-exception-logging [& exprs]
-  (try
-   (do ~@exprs)
-   (catch Exception e
-     (log-exception e))))
+  `(try
+    (do ~@exprs)
+    (catch Exception e
+      (log-exception e))))
