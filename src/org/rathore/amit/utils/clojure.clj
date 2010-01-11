@@ -8,11 +8,11 @@
 	      (next (next vvs)))
       (seq ret))))
 
-(defn push-thread-bindings [bindings-map]
-  (clojure.lang.Var/pushThreadBindings bindings-map))
+;(defn push-thread-bindings [bindings-map]
+;  (clojure.lang.Var/pushThreadBindings bindings-map))
 
-(defn pop-thread-bindings []
-  (clojure.lang.Var/popThreadBindings))
+;(defn pop-thread-bindings []
+;  (clojure.lang.Var/popThreadBindings))
 
 (defmacro run-and-measure-timing [expr]
   `(let [start-time# (System/currentTimeMillis)
