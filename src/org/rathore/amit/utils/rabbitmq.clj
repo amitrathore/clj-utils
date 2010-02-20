@@ -41,24 +41,18 @@
 	factory (ConnectionFactory. params)]
     (.newConnection factory q-host)))
 
-(defn do-with-connection [conn new-connection-thunk the-function])
-
-;(defmacro with-connection [connection q-host q-username q-password & exprs]
-;  `(with-open [~connection (new-connection-for ~q-host ~q-username ~q-password)]
-;     (do ~@exprs)))
-
 (defmacro with-connection [connection q-host q-username q-password & exprs]
-  `(let [xx# (fn zz# [~connection]
-               (with-open [~connection ~connection]
-                 (try
-                  (do ~@exprs)
-                  (catch Exception e#
-                    (log-message "Catching...")
-                    (log-exception e#)
-                    (Thread/sleep 10000)
-                    (log-message "and recovering...")
-                    (zz# (new-connection-for ~q-host ~q-username ~q-password))))))]
-     (xx# (new-connection-for ~q-host ~q-username ~q-password))))
+  `(let [do-with-reconnection# (fn this# [~connection]
+                                 (with-open [~connection ~connection]
+                                   (try
+                                    (do ~@exprs)
+                                    (catch Exception e#
+                                      (log-message "Catching...")
+                                      (log-exception e#)
+                                      (Thread/sleep 10000)
+                                      (log-message "and recovering...")
+                                      (this# (new-connection-for ~q-host ~q-username ~q-password))))))]
+     (do-with-reconnection# (new-connection-for ~q-host ~q-username ~q-password))))
 
 (defn drop-on-channel 
   ([chan q-name q-message-string]
