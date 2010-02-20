@@ -14,11 +14,11 @@
 
 (def *rabbitmq-multiplexer*)
 
-(defn send-on-q [q-host q-username q-password q-name q-message-string]
-  (let [channel (*rabbitmq-multiplexer* :new-channel)]
-    (drop-on-channel channel q-name q-message-string)))
+(defn send-on-q 
+  ([q-name q-message-string]
+     (let [channel (*rabbitmq-multiplexer* :new-channel)]
+       (drop-on-channel channel q-name q-message-string)))
+  ([exchange-name q-name q-message-string]
+     (let [channel (*rabbitmq-multiplexer* :new-channel)]
+       (drop-on-channel channel exchange-name q-name q-message-string))))  
 
-
-
-	
-  
