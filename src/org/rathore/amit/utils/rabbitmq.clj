@@ -12,6 +12,17 @@
 
 (def *rabbitmq-multiplexer*)
 
+(defn consumer-for [channel q-name]
+  (let [consumer (QueueingConsumer. channel)]
+    (.queueDeclare channel q-name)
+    (.basicConsume channel q-name false consumer)
+    consumer))
+
+(defn delivery-from [channel consumer]
+  (let [delivery (.nextDelivery consumer)]
+    (.basicAck channel (.. delivery getEnvelope getDeliveryTag) false)
+    (String. (.getBody delivery))))
+
 (defn delivery-seq [ch q]
   (lazy-seq
     (let [d (.nextDelivery q)
