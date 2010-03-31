@@ -20,7 +20,7 @@
 (defn new-multiplexer [q-host q-username q-password]
   (let [stable-channels (StableChannels. q-host q-username q-password)]
     (fn [accessor]
-      (cond b
+      (cond
 	(= accessor :new-channel) (.createChannel stable-channels)))))
 
 (defn new-connection [q-host q-username q-password]
