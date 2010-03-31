@@ -8,12 +8,6 @@
 	      (next (next vvs)))
       (seq ret))))
 
-;(defn push-thread-bindings [bindings-map]
-;  (clojure.lang.Var/pushThreadBindings bindings-map))
-
-;(defn pop-thread-bindings []
-;  (clojure.lang.Var/popThreadBindings))
-
 (defmacro run-and-measure-timing [expr]
   `(let [start-time# (System/currentTimeMillis)
 	 response# ~expr
@@ -30,10 +24,19 @@
      (do
        ~@exprs)))
 
-(defn read-clojure-str [object-str]
-  (read (PushbackReader. (StringReader. object-str))))
+;(defn read-clojure-str [object-str]
+;  (read (PushbackReader. (StringReader. object-str))))
 
 (defmacro defmemoized [fn-name args & body]
   `(def ~fn-name (memoize (fn ~args 
 			    (do
 			      ~@body)))))
+
+(defn create-runonce [function] 
+  (let [sentinel (Object.)
+        result (atom sentinel)] 
+    (fn [& args]
+      (locking sentinel 
+        (if (= @result sentinel)
+          (reset! result (apply function args)) 
+          @result)))))
