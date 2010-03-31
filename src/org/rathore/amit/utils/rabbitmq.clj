@@ -2,9 +2,10 @@
   (:import (com.rabbitmq.client ConnectionParameters ConnectionFactory MessageProperties QueueingConsumer))
   (:import (com.runa StableChannels))
   (:use org.rathore.amit.utils.clojure org.rathore.amit.utils.logger)
-  (:use clojure.stacktrace))
+  (:use clojure.stacktrace)
+  (:use clojure.contrib.except))
 
-(def *rabbitmq-multiplexer*)
+;(def *rabbitmq-multiplexer*)
 (def DEFAULT-EXCHANGE-NAME "")
 (def DEFAULT-EXCHANGE-TYPE "direct")
 (def FANOUT-EXCHANGE-TYPE "fanout")
@@ -17,11 +18,11 @@
    (fn [q-host q-username q-password]
      (reset! RABBITMQ-CONNECTION (new-connection q-host q-username q-password)))))
 
-(defn new-multiplexer [q-host q-username q-password]
-  (let [stable-channels (StableChannels. q-host q-username q-password)]
-    (fn [accessor]
-      (cond
-	(= accessor :new-channel) (.createChannel stable-channels)))))
+;(defn new-multiplexer [q-host q-username q-password]
+;  (let [stable-channels (StableChannels. q-host q-username q-password)]
+;    (fn [accessor]
+;      (cond
+;	(= accessor :new-channel) (.createChannel stable-channels)))))
 
 (defn new-connection [q-host q-username q-password]
   (let [params (doto (ConnectionParameters.)
@@ -47,7 +48,9 @@
 ;  (*rabbitmq-multiplexer* :new-channel))
 
 (defn new-channel []
-  (.createChannel RABBITMQ-CONNECTION))
+  (if (nil? @RABBITMQ-CONNECTION)
+    (throwf "RABBITMQ-CONNECTION is not initialized!"))
+  (.createChannel @RABBITMQ-CONNECTION))
 
 (defn send-message
   ([routing-key message-object]
