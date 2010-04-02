@@ -23,19 +23,6 @@
                  (.setPassword q-password))]
     (.newConnection (ConnectionFactory. params) q-host)))
 
-(defmacro with-connection [connection q-host q-username q-password & exprs]
-  `(let [do-with-reconnection# (fn this# [~connection]
-                                 (with-open [~connection ~connection]
-                                   (try
-                                    (do ~@exprs)
-                                    (catch Exception e#
-                                      (log-message "Catching...")
-                                      (log-exception e#)
-                                      (Thread/sleep 10000)
-                                      (log-message "and recovering...")
-                                      (this# (new-connection-for ~q-host ~q-username ~q-password))))))]
-     (do-with-reconnection# (new-connection ~q-host ~q-username ~q-password))))
-
 (defn new-channel []
   (if (nil? @RABBITMQ-CONNECTION)
     (throwf "RABBITMQ-CONNECTION is not initialized!"))
@@ -91,12 +78,12 @@
            consumer (consumer-for channel exchange-name exchange-type queue-name routing-key)]
        (lazy-message-seq channel consumer))))
 
-(defn start-queue-message-handler-for-function-amqp 
-  ([q-host q-username q-password routing-key handler-fn]
-     (start-queue-message-handler-for-function-amqp q-host q-username q-password DEFAULT-EXCHANGE-NAME DEFAULT-EXCHANGE-TYPE routing-key handler-fn))
-  ([q-host q-username q-password queue-name routing-key handler-fn]
+(defn start-queue-message-handler 
+  ([routing-key handler-fn]
+     (start-queue-message-handler DEFAULT-EXCHANGE-NAME DEFAULT-EXCHANGE-TYPE routing-key handler-fn))
+  ([queue-name routing-key handler-fn]
      (doseq [m (message-seq DEFAULT-EXCHANGE-NAME DEFAULT-EXCHANGE-TYPE queue-name routing-key)]
        (handler-fn m)))
-  ([q-host q-username q-password exchange-name exchange-type routing-key handler-fn]
+  ([exchange-name exchange-type routing-key handler-fn]
      (doseq [m (message-seq exchange-name exchange-type routing-key)]
        (handler-fn m))))
