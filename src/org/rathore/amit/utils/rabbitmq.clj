@@ -26,7 +26,8 @@
 (defn new-channel []
   (if (nil? @RABBITMQ-CONNECTION)
     (throwf "RABBITMQ-CONNECTION is not initialized!"))
-  (.createChannel @RABBITMQ-CONNECTION))
+  (doto (.createChannel @RABBITMQ-CONNECTION)
+    (.basicQos 1)))
 
 (defn send-message
   ([routing-key message-object]
