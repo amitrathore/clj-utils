@@ -6,3 +6,5 @@ config/config.clj
 scripts/furtive
 logs/*
 logs
+classes
+classes/*
