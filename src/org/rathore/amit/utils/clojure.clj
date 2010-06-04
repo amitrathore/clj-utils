@@ -40,3 +40,6 @@
         (if (= @result sentinel)
           (reset! result (apply function args)) 
           @result)))))
+
+(defmacro defrunonce [fn-name args & body]
+  `(def ~fn-name (create-runonce (fn ~args ~@body))))
