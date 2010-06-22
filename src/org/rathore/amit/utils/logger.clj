@@ -27,8 +27,9 @@
 
 (defn log-exception [e]
   (log-message (stacktrace e))
-  (if (notify-on-exception?)
-    (email-exception e)))
+  (when (notify-on-exception?)
+    (email-exception e)
+    nil))
 
 (defn email-exception [e]
   (let [subject (str (error-notification-subject-prefix) " " (.getMessage e))

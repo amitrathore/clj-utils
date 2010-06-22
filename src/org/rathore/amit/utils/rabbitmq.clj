@@ -26,7 +26,8 @@
 (defn new-channel []
   (if (nil? @RABBITMQ-CONNECTION)
     (throwf "RABBITMQ-CONNECTION is not initialized!"))
-  (.createChannel @RABBITMQ-CONNECTION))
+  (doto (.createChannel @RABBITMQ-CONNECTION)
+    (.basicQos 1)))
 
 (defn send-message
   ([routing-key message-object]
@@ -69,21 +70,23 @@
      (cons message (lazy-message-seq channel consumer)))))
 
 (defn message-seq 
-  ([queue-name]
-     (message-seq DEFAULT-EXCHANGE-NAME DEFAULT-EXCHANGE-TYPE queue-name queue-name))
-  ([exchange-name exchange-type routing-key]
-     (message-seq exchange-name exchange-type (random-queue) routing-key))
-  ([exchange-name exchange-type queue-name routing-key]
-     (let [channel (new-channel)
-           consumer (consumer-for channel exchange-name exchange-type queue-name routing-key)]
+  ([channel queue-name]
+     (message-seq DEFAULT-EXCHANGE-NAME DEFAULT-EXCHANGE-TYPE channel queue-name queue-name))
+  ([exchange-name exchange-type channel routing-key]
+     (message-seq exchange-name exchange-type channel (random-queue) routing-key))
+  ([exchange-name exchange-type channel queue-name routing-key]
+     (let [consumer (consumer-for channel exchange-name exchange-type queue-name routing-key)]
        (lazy-message-seq channel consumer))))
 
 (defn start-queue-message-handler 
   ([routing-key handler-fn]
      (start-queue-message-handler DEFAULT-EXCHANGE-NAME DEFAULT-EXCHANGE-TYPE routing-key handler-fn))
   ([queue-name routing-key handler-fn]
-     (doseq [m (message-seq DEFAULT-EXCHANGE-NAME DEFAULT-EXCHANGE-TYPE queue-name routing-key)]
-       (handler-fn m)))
+     (with-open [channel (new-channel)]
+       (doseq [m (message-seq DEFAULT-EXCHANGE-NAME DEFAULT-EXCHANGE-TYPE
+                              channel queue-name routing-key)]
+         (handler-fn m))))
   ([exchange-name exchange-type routing-key handler-fn]
-     (doseq [m (message-seq exchange-name exchange-type routing-key)]
-       (handler-fn m))))
+     (with-open [channel (new-channel)]
+       (doseq [m (message-seq exchange-name exchange-type channel routing-key)]
+         (handler-fn m)))))
