@@ -47,6 +47,14 @@
      `(let [~'it ~test-form]
         (if ~'it ~then-form ~else-form))))
 
+(defmacro anil?
+  ([test-form then-form]
+     `(let [~'it ~test-form]
+        (if-not (nil? ~'it) ~then-form)))
+  ([test-form then-form else-form]
+     `(let [~'it ~test-form]
+        (if-not (nil? ~'it) ~then-form ~else-form))))
+
 (defmacro awhen [test-form & body]
   `(aif ~test-form (do ~@body)))
 
@@ -63,3 +71,4 @@
       (let [first-test (first tests)]
         `(aif ~first-test
               (aand ~@(rest tests)))))))
+
