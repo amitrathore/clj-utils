@@ -7,7 +7,7 @@
   <name>clj-utils</name>
   <description>A bunch of common utilities for Clojure programs</description>
   <scm>
-    <tag>c5e4efd973931462bc500adb3d343eef91fafcd7</tag>
+    <tag>b4e58527210e79f1996a5f67bbc01d5e9b6e136f</tag>
   </scm>
   <repositories>
     <repository>
@@ -33,6 +33,26 @@
       <groupId>org.clojure</groupId>
       <artifactId>clojure-contrib</artifactId>
       <version>1.1.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.clojars.sethtrain</groupId>
+      <artifactId>postal</artifactId>
+      <version>0.2.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.clojars.miau.biz</groupId>
+      <artifactId>selenium-server-standalone</artifactId>
+      <version>2.0a2</version>
+    </dependency>
+    <dependency>
+      <groupId>org.danlarkin</groupId>
+      <artifactId>clojure-json</artifactId>
+      <version>1.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.clojars.kjw</groupId>
+      <artifactId>rabbitmq-client</artifactId>
+      <version>1.7.1</version>
     </dependency>
   </dependencies>
 </project>

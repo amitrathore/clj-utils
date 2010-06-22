@@ -1,6 +1,8 @@
 (ns org.rathore.amit.utils.clojure
   (:import (java.io PushbackReader StringReader)))
 
+;; internals
+
 (defn var-ize [var-vals]
   (loop [ret [] vvs (seq var-vals)]
     (if vvs
@@ -8,24 +10,15 @@
 	      (next (next vvs)))
       (seq ret))))
 
+;; utils
+
 (defmacro run-and-measure-timing [expr]
   `(let [start-time# (System/currentTimeMillis)
 	 response# ~expr
 	 end-time# (System/currentTimeMillis)]
      {:time-taken (- end-time# start-time#) :response response# :start-time start-time# :end-time end-time#}))
 
-(defn destructured-hash [attribs]
-  (let [d-pair (fn [attrib]
-		 (list attrib (.replace (name attrib) "-" "_")))]		 
-  (apply hash-map (mapcat d-pair attribs))))
-
-(defmacro def-hash-method [method-name params & exprs]
-  `(defn ~method-name [~(destructured-hash params)]
-     (do
-       ~@exprs)))
-
-;(defn read-clojure-str [object-str]
-;  (read (PushbackReader. (StringReader. object-str))))
+;; function creators
 
 (defmacro defmemoized [fn-name args & body]
   `(def ~fn-name (memoize (fn ~args 
@@ -43,3 +36,30 @@
 
 (defmacro defrunonce [fn-name args & body]
   `(def ~fn-name (create-runonce (fn ~args ~@body))))
+
+
+;; language-level macros
+(defmacro aif 
+  ([test-form then-form]
+     `(let [~'it ~test-form]
+        (if ~'it ~then-form)))
+  ([test-form then-form else-form]
+     `(let [~'it ~test-form]
+        (if ~'it ~then-form ~else-form))))
+
+(defmacro awhen [test-form & body]
+  `(aif ~test-form (do ~@body)))
+
+(defmacro awhile [test-expr & body]
+  `(while (let [~'it ~test-expr]
+            (do ~@body)
+            ~'it)))
+
+(defmacro aand [& tests]
+  (if (empty? tests)
+    true
+    (if (empty? (rest tests))
+      (first tests)
+      (let [first-test (first tests)]
+        `(aif ~first-test
+              (aand ~@(rest tests)))))))
