@@ -26,10 +26,15 @@
 		     (map #(str (.toString %) "\n") (.getStackTrace e))))))
 
 (defn log-exception [e]
-  (log-message (stacktrace e))
-  (when (notify-on-exception?)
-    (email-exception e)
-    nil))
+  (let [cause (last (take-while #(not (nil? %))
+                                (iterate #(.getCause %) e)))]
+    (log-message (stacktrace e))
+    (when-not (= e cause)
+      (log-message "The cause is:")
+      (log-message (stacktrace cause)))
+    (when (notify-on-exception?)
+      (email-exception e)
+      nil)))
 
 (defn email-exception [e]
   (let [subject (str (error-notification-subject-prefix) " " (.getMessage e))
