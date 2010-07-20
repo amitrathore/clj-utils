@@ -12,9 +12,9 @@
 (declare new-connection)
 
 (def init-rabbitmq-connection 
-  (create-runonce
-   (fn [q-host q-username q-password]
-     (reset! RABBITMQ-CONNECTION (new-connection q-host q-username q-password)))))
+     (create-runonce
+      (fn [q-host q-username q-password]
+        (reset! RABBITMQ-CONNECTION (new-connection q-host q-username q-password)))))
 
 (defn new-connection [q-host q-username q-password]
   (let [params (doto (ConnectionParameters.)
@@ -26,8 +26,13 @@
 (defn new-channel []
   (if (nil? @RABBITMQ-CONNECTION)
     (throwf "RABBITMQ-CONNECTION is not initialized!"))
-  (doto (.createChannel @RABBITMQ-CONNECTION)
-    (.basicQos 1)))
+  (try 
+   (doto (.createChannel @RABBITMQ-CONNECTION)
+     (.basicQos 1))
+   (catch Exception e 
+     (log-message "exception on rabbit channel create; exiting")
+     (log-exception e)
+     (System/exit 1))))
 
 (defn send-message
   ([routing-key message-object]

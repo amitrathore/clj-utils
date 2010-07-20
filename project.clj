@@ -1,4 +1,4 @@
-(defproject clj-utils "0.1.0"
+(defproject org.clojars.runa/clj-utils "0.1.2"
   :description "A bunch of common utilities for Clojure programs"
   :url "http://github.com/amitrathore/clj-utils"
   :dependencies [[org.clojure/clojure "1.1.0"]

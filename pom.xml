@@ -1,18 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project>
   <modelVersion>4.0.0</modelVersion>
-  <groupId>clj-utils</groupId>
+  <groupId>org.clojars.runa</groupId>
   <artifactId>clj-utils</artifactId>
-  <version>0.1.0</version>
+  <version>0.1.2</version>
   <name>clj-utils</name>
   <description>A bunch of common utilities for Clojure programs</description>
   <scm>
-    <tag>b4e58527210e79f1996a5f67bbc01d5e9b6e136f</tag>
+    <connection>scm:git:git://github.com/amitrathore/clj-utils.git</connection>
+    <developerConnection>scm:git:ssh://git@github.com/amitrathore/clj-utils.git</developerConnection>
+    <tag>d263399575e331d6c08d1c799175f4a8c6ca3f78</tag>
+    <url>http://github.com/amitrathore/clj-utils</url>
   </scm>
   <repositories>
     <repository>
       <id>central</id>
       <url>http://repo1.maven.org/maven2</url>
+    </repository>
+    <repository>
+      <id>clojure</id>
+      <url>http://build.clojure.org/releases</url>
     </repository>
     <repository>
       <id>clojure-snapshots</id>
