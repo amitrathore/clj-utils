@@ -1,38 +1,20 @@
 (ns org.rathore.amit.utils.rabbitmq
   (:import (com.rabbitmq.client ConnectionParameters ConnectionFactory MessageProperties QueueingConsumer))
-  (:use org.rathore.amit.utils.clojure org.rathore.amit.utils.logger)
+  (:use org.rathore.amit.utils.rabbit-pool
+        org.rathore.amit.utils.clojure
+        org.rathore.amit.utils.logger)
   (:use clojure.stacktrace)
   (:use clojure.contrib.except))
 
 (def DEFAULT-EXCHANGE-NAME "")
 (def DEFAULT-EXCHANGE-TYPE "direct")
 (def FANOUT-EXCHANGE-TYPE "fanout")
-(def RABBITMQ-CONNECTION (atom nil))
 
-(declare new-connection)
-
-(def init-rabbitmq-connection 
-     (create-runonce
-      (fn [q-host q-username q-password]
-        (reset! RABBITMQ-CONNECTION (new-connection q-host q-username q-password)))))
-
-(defn new-connection [q-host q-username q-password]
-  (let [params (doto (ConnectionParameters.)
-		 (.setVirtualHost "/")
-		 (.setUsername q-username)
-                 (.setPassword q-password))]
-    (.newConnection (ConnectionFactory. params) q-host)))
+(defn init-rabbitmq-connection [q-host q-username q-password]
+  (init-pool q-host q-username q-password))
 
 (defn new-channel []
-  (if (nil? @RABBITMQ-CONNECTION)
-    (throwf "RABBITMQ-CONNECTION is not initialized!"))
-  (try 
-   (doto (.createChannel @RABBITMQ-CONNECTION)
-     (.basicQos 1))
-   (catch Exception e 
-     (log-message "exception on rabbit channel create; exiting")
-     (log-exception e)
-     (System/exit 1))))
+  (create-channel (get-connection-from-pool)))
 
 (defn send-message
   ([routing-key message-object]
