@@ -51,10 +51,20 @@
        (let [consumer (consumer-for channel exchange-name exchange-type queue-name routing-key)]
          (delivery-from channel consumer)))))
 
-(defn- lazy-message-seq [channel consumer]
+(defn guaranteed-delivery-from [exchange-name exchange-type queue-name routing-key channel-atom consumer-atom]
+  (try
+   (delivery-from @channel-atom @consumer-atom)
+   (catch Exception e
+     (let [new-channel (new-channel)
+           new-consumer (consumer-for new-channel exchange-name exchange-type queue-name routing-key)]
+       (reset! channel-atom new-channel)
+       (reset! consumer-atom new-consumer)
+       (guaranteed-delivery-from exchange-name exchange-type queue-name routing-key channel-atom consumer-atom)))))
+
+(defn- lazy-message-seq [exchange-name exchange-type queue-name routing-key channel-atom consumer-atom]
   (lazy-seq
-   (let [message (delivery-from channel consumer)]
-     (cons message (lazy-message-seq channel consumer)))))
+    (let [message (guaranteed-delivery-from exchange-name exchange-type queue-name routing-key channel-atom consumer-atom)]
+      (cons message (lazy-message-seq exchange-name exchange-type queue-name routing-key)))))
 
 (defn message-seq 
   ([channel queue-name]
@@ -62,8 +72,9 @@
   ([exchange-name exchange-type channel routing-key]
      (message-seq exchange-name exchange-type channel (random-queue) routing-key))
   ([exchange-name exchange-type channel queue-name routing-key]
-     (let [consumer (consumer-for channel exchange-name exchange-type queue-name routing-key)]
-       (lazy-message-seq channel consumer))))
+     (let [channel-atom (atom (new-channel)) 
+           consumer-atom (atom (consumer-for channel exchange-name exchange-type queue-name routing-key))]
+       (lazy-message-seq exchange-name exchange-type queue-name routing-key channel-atom consumer-atom))))
 
 (defn start-queue-message-handler 
   ([routing-key handler-fn]

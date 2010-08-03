@@ -7,7 +7,6 @@
            [org.apache.commons.pool BasePoolableObjectFactory]
            [com.rabbitmq.client AlreadyClosedException]))
 
-
 (def *POOL* (atom nil))
 (def *MAX-POOL-SIZE* 10)
 (def *POOL-EVICTION-RUN-EVERY-MILLIS* 60000)
