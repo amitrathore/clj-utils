@@ -13,6 +13,10 @@
 (defn init-rabbitmq-connection [q-host q-username q-password]
   (init-pool q-host q-username q-password))
 
+(defn- wait-for-seconds [n]
+  (log-message "message-seq: waiting" n "seconds to reconnect to RabbitMQ...")
+  (Thread/sleep (* 1000 n)))
+
 (defn new-channel []
   (create-channel (get-connection-from-pool)))
 
@@ -57,6 +61,7 @@
    (catch Exception e
      (let [new-channel (new-channel)
            new-consumer (consumer-for new-channel exchange-name exchange-type queue-name routing-key)]
+       (wait-for-seconds (rand-int 10))
        (reset! channel-atom new-channel)
        (reset! consumer-atom new-consumer)
        (guaranteed-delivery-from exchange-name exchange-type queue-name routing-key channel-atom consumer-atom)))))
