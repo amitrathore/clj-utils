@@ -1,6 +1,7 @@
 (ns org.rathore.amit.utils.rabbit-pool
   (:use org.rathore.amit.utils.clojure
-        org.rathore.amit.utils.logger)
+        org.rathore.amit.utils.logger
+        clojure.contrib.str-utils)
   (:import [com.rabbitmq.client ConnectionParameters ConnectionFactory MessageProperties QueueingConsumer]
            [com.rabbitmq.client.impl AMQConnection]
            [org.apache.commons.pool.impl GenericObjectPool]
@@ -10,6 +11,8 @@
 (def *POOL* (atom nil))
 (def *MAX-POOL-SIZE* 10)
 (def *POOL-EVICTION-RUN-EVERY-MILLIS* 60000)
+
+(declare connection-valid?)
 
 (defn new-rabbit-connection [host username password]
   (let [params (doto (ConnectionParameters.)
@@ -43,16 +46,13 @@
             (.setLifo false)
             (.setTimeBetweenEvictionRunsMillis *POOL-EVICTION-RUN-EVERY-MILLIS*)
             (.setWhenExhaustedAction GenericObjectPool/WHEN_EXHAUSTED_BLOCK)
-            (.setTestWhileIdle true)
-            ;(.setTestOnBorrow true)
-            )]
+            (.setTestWhileIdle true))]
     (reset! *POOL* p)))
 
 (defn pool-status []
   [(.getNumActive @*POOL*) (.getNumIdle @*POOL*) *MAX-POOL-SIZE*])
 
 (defn get-connection-from-pool []
-  ;(log-message "Pool stats [active idle max]:" (pool-status))
   (.borrowObject #^GenericObjectPool @*POOL*))
 
 (defn return-connection-to-pool [c]
@@ -60,16 +60,4 @@
 
 (defn invalidate-connection [c]
   (.invalidateObject @*POOL* c))
-
-(defn create-channel [c]
-  ;(log-message "Creating channel with" c)
-  (try 
-   (let [ch (.createChannel c)]
-     (return-connection-to-pool c)
-     (.basicQos ch 1)
-     ch)
-   (catch Exception e
-       (log-exception e)
-       (invalidate-connection c)
-       (create-channel (get-connection-from-pool)))))
 

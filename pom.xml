@@ -3,14 +3,11 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.clojars.runa</groupId>
   <artifactId>clj-utils</artifactId>
-  <version>0.1.2</version>
+  <version>0.2.0</version>
   <name>clj-utils</name>
   <description>A bunch of common utilities for Clojure programs</description>
   <scm>
-    <connection>scm:git:git://github.com/amitrathore/clj-utils.git</connection>
-    <developerConnection>scm:git:ssh://git@github.com/amitrathore/clj-utils.git</developerConnection>
-    <tag>d263399575e331d6c08d1c799175f4a8c6ca3f78</tag>
-    <url>http://github.com/amitrathore/clj-utils</url>
+    <tag>6fe176b04a6244f6a66c7ce35bbac4cf3e7a1e2e</tag>
   </scm>
   <repositories>
     <repository>
