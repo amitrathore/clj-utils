@@ -25,22 +25,24 @@
 	       (cons (str (.getMessage e) "\n")
 		     (map #(str (.toString %) "\n") (.getStackTrace e))))))
 
-(defn log-exception [e]
-  (let [cause (last (take-while #(not (nil? %))
-                                (iterate #(.getCause %) e)))]
-    (log-message (stacktrace e))
-    (when-not (= e cause)
-      (log-message "The cause is:")
-      (log-message (stacktrace cause)))
-    (when (notify-on-exception?)
-      (email-exception e)
-      nil)))
+(defn log-exception
+  ([e additional-message]
+     (let [cause (last (take-while #(not (nil? %)) (iterate #(.getCause %) e)))]
+       (log-message additional-message)
+       (log-message (stacktrace e))
+       (when-not (= e cause)
+         (log-message "The cause is:")
+         (log-message (stacktrace cause)))
+       (when (notify-on-exception?)
+         (email-exception e additional-message)
+         nil)))
+  ([e]
+     (log-message e "\n")))
 
-(defn email-exception [e]
+(defn email-exception [e additional-message]
   (let [subject (str (error-notification-subject-prefix) " " (.getMessage e))
-	body (str-join "\n" [(timestamp-for-now) (stacktrace e) (str "\nAlso logged to" (log-file) " on " (InetAddress/getLocalHost))])]
+	body (str-join "\n" [(timestamp-for-now) additional-message "\n" (stacktrace e) (str "\nAlso logged to" (log-file) " on " (InetAddress/getLocalHost))])]
     (send-email-async (error-notification-from) (error-notification-to) subject body)))
-
 
 (defmacro with-exception-logging [& exprs]
   `(try
