@@ -37,7 +37,7 @@
          (email-exception e additional-message)
          nil)))
   ([e]
-     (log-message e "\n")))
+     (log-exception e "\n")))
 
 (defn email-exception [e additional-message]
   (let [subject (str (error-notification-subject-prefix) " " (.getMessage e))
