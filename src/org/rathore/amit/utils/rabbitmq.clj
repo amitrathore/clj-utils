@@ -4,7 +4,8 @@
         org.rathore.amit.utils.clojure
         org.rathore.amit.utils.logger)
   (:use clojure.stacktrace)
-  (:use clojure.contrib.except))
+  (:use clojure.contrib.except
+        clojure.contrib.str-utils))
 
 (def DEFAULT-EXCHANGE-NAME "")
 (def DEFAULT-EXCHANGE-TYPE "direct")
@@ -30,6 +31,10 @@
        (invalidate-connection c)
        (create-channel)))))
 
+(defn delete-queue [q-name]
+  (with-open [chan (create-channel)]
+    (.queueDelete chan q-name)))
+
 (defn send-message
   ([routing-key message-object]
      (send-message DEFAULT-EXCHANGE-NAME DEFAULT-EXCHANGE-TYPE routing-key message-object))
@@ -37,6 +42,13 @@
      (with-open [channel (create-channel)]
        (.exchangeDeclare channel exchange-name exchange-type)
        (.queueDeclare channel routing-key)
+       (.basicPublish channel exchange-name routing-key nil (.getBytes (str message-object))))))
+
+(defn send-message-if-queue
+  ([routing-key message-object]
+     (send-message-if-queue DEFAULT-EXCHANGE-NAME DEFAULT-EXCHANGE-TYPE routing-key message-object))
+  ([exchange-name exchange-type routing-key message-object]
+     (with-open [channel (create-channel)]
        (.basicPublish channel exchange-name routing-key nil (.getBytes (str message-object))))))
 
 (defn delivery-from [channel consumer]
@@ -111,4 +123,8 @@
   ([exchange-name exchange-type routing-key handler-fn]
      (with-open [channel (create-channel)]
        (doseq [m (message-seq exchange-name exchange-type channel routing-key)]
+         (handler-fn m))))
+  ([exchange-name exchange-type queue-name routing-key handler-fn]
+     (with-open [channel (create-channel)]
+       (doseq [m (message-seq exchange-name exchange-type channel queue-name routing-key)]
          (handler-fn m)))))
