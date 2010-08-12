@@ -26,8 +26,7 @@
        (.basicQos ch 1)
        ch)
      (catch Exception e
-       (log-message "create-channel, error creating channel, retrying...")
-       ;(log-exception e)
+       (log-message "create-channel, error:" (class e) " creating channel, retrying...")
        (invalidate-connection c)
        (wait-for-seconds (rand-int 2))
        #(create-channel-guaranteed)))))
