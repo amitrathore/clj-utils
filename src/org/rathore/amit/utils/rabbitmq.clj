@@ -18,18 +18,22 @@
   (log-message "message-seq: waiting" n "seconds to reconnect to RabbitMQ...")
   (Thread/sleep (* 1000 n)))
 
-(defn create-channel []
-  (let [c (get-connection-from-pool)]
+(defn create-channel-guaranteed []
+  (let [c (get-connection-from-pool)] ;;is outside try, so rabbit-down-exception bubbles up
     (try 
      (let [ch (.createChannel c)]
        (return-connection-to-pool c)
        (.basicQos ch 1)
        ch)
      (catch Exception e
-       (log-message "create-channel, error creating channel with" (.hashCode c))
-       (log-exception e)
+       (log-message "create-channel, error creating channel, retrying...")
+       ;(log-exception e)
        (invalidate-connection c)
-       (create-channel)))))
+       (wait-for-seconds (rand-int 2))
+       #(create-channel-guaranteed)))))
+
+(defn create-channel []
+  (trampoline create-channel-guaranteed))
 
 (defn delete-queue [q-name]
   (with-open [chan (create-channel)]
@@ -86,21 +90,21 @@
          new-consumer (consumer-for new-channel exchange-name exchange-type queue-name routing-key)]
      (reset! channel-atom new-channel)
      (reset! consumer-atom new-consumer)
-     (guaranteed-delivery-from exchange-name exchange-type queue-name routing-key channel-atom consumer-atom))
+     #(guaranteed-delivery-from exchange-name exchange-type queue-name routing-key channel-atom consumer-atom))
    (catch Exception e
      (log-message "recover-from-delivery: got error" (class e) "Retrying...")
-     (recover-from-delivery exchange-name exchange-type queue-name routing-key channel-atom consumer-atom))))
+     #(recover-from-delivery exchange-name exchange-type queue-name routing-key channel-atom consumer-atom))))
 
 (defn guaranteed-delivery-from [exchange-name exchange-type queue-name routing-key channel-atom consumer-atom]
   (try
    (delivery-from @channel-atom @consumer-atom)
    (catch Exception e
      (log-message "guaranteed-delivery-from: got-error" (class e) "Recovering...")
-     (recover-from-delivery exchange-name exchange-type queue-name routing-key channel-atom consumer-atom))))
+     #(recover-from-delivery exchange-name exchange-type queue-name routing-key channel-atom consumer-atom))))
 
 (defn- lazy-message-seq [exchange-name exchange-type queue-name routing-key channel-atom consumer-atom]
   (lazy-seq
-    (let [message (guaranteed-delivery-from exchange-name exchange-type queue-name routing-key channel-atom consumer-atom)]
+    (let [message (trampoline guaranteed-delivery-from exchange-name exchange-type queue-name routing-key channel-atom consumer-atom)]
       (cons message (lazy-message-seq exchange-name exchange-type queue-name routing-key channel-atom consumer-atom)))))
 
 (defn message-seq 
