@@ -2,7 +2,7 @@
   (:use org.rathore.amit.utils.clojure
         org.rathore.amit.utils.logger
         clojure.contrib.str-utils)
-  (:import [com.rabbitmq.client ConnectionParameters ConnectionFactory MessageProperties QueueingConsumer]
+  (:import [com.rabbitmq.client ConnectionFactory MessageProperties QueueingConsumer]
            [com.rabbitmq.client.impl AMQConnection]
            [org.apache.commons.pool.impl GenericObjectPool]
            [org.apache.commons.pool BasePoolableObjectFactory]
@@ -15,11 +15,12 @@
 (declare connection-valid?)
 
 (defn new-rabbit-connection [host username password]
-  (let [params (doto (ConnectionParameters.)
-                 (.setVirtualHost "/")
-                 (.setUsername username)
-                 (.setPassword password))]
-    (.newConnection (ConnectionFactory. params) host)))
+  (.newConnection
+   (doto (ConnectionFactory.)
+     (.setVirtualHost "/")
+     (.setUsername username)
+     (.setPassword password)
+     (.setHost host))))
 
 (defn connection-valid? [c]
   (try
