@@ -1,5 +1,5 @@
 (ns org.rathore.amit.utils.rabbitmq
-  (:import (com.rabbitmq.client ConnectionParameters ConnectionFactory MessageProperties QueueingConsumer))
+  (:import (com.rabbitmq.client  ConnectionFactory MessageProperties QueueingConsumer))
   (:use org.rathore.amit.utils.rabbit-pool
         org.rathore.amit.utils.clojure
         org.rathore.amit.utils.logger)
@@ -45,7 +45,7 @@
   ([exchange-name exchange-type routing-key message-object]
      (with-open [channel (create-channel)]
        (.exchangeDeclare channel exchange-name exchange-type)
-       (.queueDeclare channel routing-key)
+       (.queueDeclare channel routing-key false false false nil)
        (.basicPublish channel exchange-name routing-key nil (.getBytes (str message-object))))))
 
 (defn send-message-if-queue
@@ -63,7 +63,7 @@
 (defn consumer-for [channel exchange-name exchange-type queue-name routing-key]
   (let [consumer (QueueingConsumer. channel)]
     (.exchangeDeclare channel exchange-name exchange-type)
-    (.queueDeclare channel queue-name)
+    (.queueDeclare channel queue-name false false false nil)
     (.queueBind channel queue-name exchange-name routing-key)
     (.basicConsume channel queue-name consumer)
     consumer))
