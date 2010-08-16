@@ -1,6 +1,7 @@
 (ns org.rathore.amit.utils.logger
   (:import (java.io FileWriter BufferedWriter File)
-	    (java.net InetAddress))
+           (java.net InetAddress)
+           (org.productivity.java.syslog4j Syslog))
   (:use org.rathore.amit.utils.config)
   (:use org.rathore.amit.utils.file)
   (:use org.rathore.amit.utils.sql)
@@ -11,10 +12,12 @@
 
 (defn log-message [& message-tokens]
   (let [timestamp-prefix (str (timestamp-for-now) ": ")
-	message (apply str timestamp-prefix (interleave message-tokens (repeat " ")))]
+	message (apply str (log-filename-prefix) ": " timestamp-prefix  (interleave message-tokens (repeat " ")))]
     (if (should-log-to-console?) 
       (println message))
-    (spit (log-file) message)))
+    (spit (log-file) message)
+    (if (syslog-enabled?)
+      (.warn (Syslog/getInstance "unix_syslog") message))))
 
 (defn exception-name [e]
   (.getName (.getClass e)))
