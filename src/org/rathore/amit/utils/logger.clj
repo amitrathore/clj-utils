@@ -32,10 +32,11 @@
   ([e additional-message]
      (let [cause (last (take-while #(not (nil? %)) (iterate #(.getCause %) e)))]
        (log-message additional-message)
-       (log-message (stacktrace e))
-       (when-not (= e cause)
-         (log-message "The cause is:")
-         (log-message (stacktrace cause)))
+       (if-not (= e cause)
+         (do
+           (log-message "The cause is:" (class e))
+           (log-message (stacktrace cause)))
+         (log-message (stacktrace e)))
        (when (notify-on-exception?)
          (email-exception e additional-message)
          nil)))
