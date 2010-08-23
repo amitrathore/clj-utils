@@ -56,7 +56,7 @@
      (send-message-if-queue DEFAULT-EXCHANGE-NAME DEFAULT-EXCHANGE-TYPE routing-key message-object))
   ([exchange-name exchange-type routing-key message-object]
      (with-open [channel (create-channel)]
-       (.basicPublish channel exchange-name routing-key nil (utf-payload)))))
+       (.basicPublish channel exchange-name routing-key nil (utf-payload message-object)))))
 
 (defn delivery-from [channel consumer]
   (let [delivery (.nextDelivery consumer)]
