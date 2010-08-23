@@ -10,11 +10,14 @@
 
 (declare email-exception)
 
+(defn println-utf [utf-encoded-string]
+  (.println (java.io.PrintStream. System/out true "UTF-8") utf-encoded-string))
+
 (defn log-message [& message-tokens]
   (let [timestamp-prefix (str (timestamp-for-now) ": ")
 	message (apply str (log-filename-prefix) ": " timestamp-prefix  (interleave message-tokens (repeat " ")))]
     (if (should-log-to-console?) 
-      (println message))
+      (println-utf message))
     (spit (log-file) message)
     (if (syslog-enabled?)
       (.warn (Syslog/getInstance "unix_syslog") message))))

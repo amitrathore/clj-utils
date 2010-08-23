@@ -39,6 +39,9 @@
   (with-open [chan (create-channel)]
     (.queueDelete chan q-name)))
 
+(defn utf-payload [message-object]
+  (.getBytes (str message-object) "UTF-8"))
+
 (defn send-message
   ([routing-key message-object]
      (send-message DEFAULT-EXCHANGE-NAME DEFAULT-EXCHANGE-TYPE routing-key message-object))
@@ -46,19 +49,19 @@
      (with-open [channel (create-channel)]
        (.exchangeDeclare channel exchange-name exchange-type)
        (.queueDeclare channel routing-key false false false nil)
-       (.basicPublish channel exchange-name routing-key nil (.getBytes (str message-object))))))
+       (.basicPublish channel exchange-name routing-key nil (utf-payload message-object)))))
 
 (defn send-message-if-queue
   ([routing-key message-object]
      (send-message-if-queue DEFAULT-EXCHANGE-NAME DEFAULT-EXCHANGE-TYPE routing-key message-object))
   ([exchange-name exchange-type routing-key message-object]
      (with-open [channel (create-channel)]
-       (.basicPublish channel exchange-name routing-key nil (.getBytes (str message-object))))))
+       (.basicPublish channel exchange-name routing-key nil (utf-payload)))))
 
 (defn delivery-from [channel consumer]
   (let [delivery (.nextDelivery consumer)]
     (.basicAck channel (.. delivery getEnvelope getDeliveryTag) false)
-    (String. (.getBody delivery))))
+    (String. (.getBody delivery) "UTF-8")))
 
 (defn consumer-for [channel exchange-name exchange-type queue-name routing-key]
   (let [consumer (QueueingConsumer. channel)]
