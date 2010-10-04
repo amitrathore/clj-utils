@@ -72,3 +72,8 @@
         `(aif ~first-test
               (aand ~@(rest tests)))))))
 
+(defmacro thread-it [& [first-expr & rest-expr]]
+  (if (empty? rest-expr)
+    first-expr
+    `(if-let [~'it ~first-expr]
+       (thread-it ~@rest-expr))))
