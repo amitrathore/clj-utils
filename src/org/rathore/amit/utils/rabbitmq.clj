@@ -7,7 +7,7 @@
   (:use clojure.contrib.except
         clojure.contrib.str-utils))
 
-(def DEFAULT-EXCHANGE-NAME "")
+(def DEFAULT-EXCHANGE-NAME "default-exchange")
 (def DEFAULT-EXCHANGE-TYPE "direct")
 (def FANOUT-EXCHANGE-TYPE "fanout")
 
