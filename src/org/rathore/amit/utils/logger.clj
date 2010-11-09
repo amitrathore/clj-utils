@@ -20,7 +20,7 @@
       (println-utf message))
     (spit (log-file) message)
     (if (syslog-enabled?)
-      (.warn (Syslog/getInstance "unix_syslog") message))))
+      (.log (Syslog/getInstance "unix_syslog") (syslog-facility) message))))
 
 (defn exception-name [e]
   (.getName (.getClass e)))
