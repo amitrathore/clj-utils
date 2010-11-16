@@ -11,6 +11,8 @@
 (def DEFAULT-EXCHANGE-TYPE "direct")
 (def FANOUT-EXCHANGE-TYPE "fanout")
 
+(def *PREFETCH-COUNT* 1)
+
 (defn init-rabbitmq-connection [q-host q-username q-password]
   (init-pool q-host q-username q-password))
 
@@ -24,7 +26,7 @@
     (try 
      (let [ch (.createChannel c)]
        (return-connection-to-pool c)
-       (.basicQos ch 1)
+       (.basicQos ch *PREFETCH-COUNT*)
        ch)
      (catch Exception e
        (log-message "create-channel, error:" (class e) " creating channel, retrying...")
@@ -59,9 +61,8 @@
        (.basicPublish channel exchange-name routing-key nil (utf-payload message-object)))))
 
 (defn delivery-from [channel consumer]
-  (let [delivery (.nextDelivery consumer)]
-    (.basicAck channel (.. delivery getEnvelope getDeliveryTag) false)
-    (String. (.getBody delivery) "UTF-8")))
+  (let [delivery (.nextDelivery consumer)]    
+    [(String. (.getBody delivery) "UTF-8") #(.basicAck channel (.. delivery getEnvelope getDeliveryTag) false)]))
 
 (defn consumer-for [channel exchange-name exchange-type queue-name routing-key]
   (let [consumer (QueueingConsumer. channel)]
@@ -125,13 +126,13 @@
      (start-queue-message-handler DEFAULT-EXCHANGE-NAME DEFAULT-EXCHANGE-TYPE routing-key handler-fn))
   ([queue-name routing-key handler-fn]
      (with-open [channel (create-channel)]
-       (doseq [m (message-seq DEFAULT-EXCHANGE-NAME DEFAULT-EXCHANGE-TYPE channel queue-name routing-key)]
-         (handler-fn m))))
+       (doseq [[m ack-fn] (message-seq DEFAULT-EXCHANGE-NAME DEFAULT-EXCHANGE-TYPE channel queue-name routing-key)]
+         (handler-fn m ack-fn))))
   ([exchange-name exchange-type routing-key handler-fn]
      (with-open [channel (create-channel)]
-       (doseq [m (message-seq exchange-name exchange-type channel routing-key)]
-         (handler-fn m))))
+       (doseq [[m ack-fn] (message-seq exchange-name exchange-type channel routing-key)]
+         (handler-fn m ack-fn))))
   ([exchange-name exchange-type queue-name routing-key handler-fn]
      (with-open [channel (create-channel)]
-       (doseq [m (message-seq exchange-name exchange-type channel queue-name routing-key)]
-         (handler-fn m)))))
+       (doseq [[m ack-fn] (message-seq exchange-name exchange-type channel queue-name routing-key)]
+         (handler-fn m ack-fn)))))
