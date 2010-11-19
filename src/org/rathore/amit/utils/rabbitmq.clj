@@ -1,5 +1,5 @@
 (ns org.rathore.amit.utils.rabbitmq
-  (:import (com.rabbitmq.client  ConnectionFactory MessageProperties QueueingConsumer))
+  (:import (com.rabbitmq.client ConnectionFactory MessageProperties QueueingConsumer AMQP$BasicProperties))
   (:use org.rathore.amit.utils.rabbit-pool
         org.rathore.amit.utils.clojure
         org.rathore.amit.utils.logger)
@@ -44,21 +44,30 @@
 (defn utf-payload [message-object]
   (.getBytes (str message-object) "UTF-8"))
 
+(defn amqp-properties [high-priority?]
+  (let [priority (if high-priority? 9 1)]
+    (println "setting priority to" priority)
+    (doto (AMQP$BasicProperties.)
+      (.setPriority priority))))
+
+(defn basic-publish [channel exchange-name routing-key amqp-props payload]
+  (.basicPublish channel exchange-name routing-key amqp-props payload))
+
 (defn send-message
-  ([routing-key message-object]
-     (send-message DEFAULT-EXCHANGE-NAME DEFAULT-EXCHANGE-TYPE routing-key message-object))
-  ([exchange-name exchange-type routing-key message-object]
+  ([high-priority? routing-key message-object]
+     (send-message high-priority? DEFAULT-EXCHANGE-NAME DEFAULT-EXCHANGE-TYPE routing-key message-object))
+  ([high-priority? exchange-name exchange-type routing-key message-object]
      (with-open [channel (create-channel)]
        (.exchangeDeclare channel exchange-name exchange-type)
        (.queueDeclare channel routing-key false false false nil)
-       (.basicPublish channel exchange-name routing-key nil (utf-payload message-object)))))
+       (basic-publish channel exchange-name routing-key (amqp-properties high-priority?) (utf-payload message-object)))))
 
 (defn send-message-if-queue
-  ([routing-key message-object]
-     (send-message-if-queue DEFAULT-EXCHANGE-NAME DEFAULT-EXCHANGE-TYPE routing-key message-object))
-  ([exchange-name exchange-type routing-key message-object]
+  ([high-priority? routing-key message-object]
+     (send-message-if-queue high-priority? DEFAULT-EXCHANGE-NAME DEFAULT-EXCHANGE-TYPE routing-key message-object))
+  ([high-priority? exchange-name exchange-type routing-key message-object]
      (with-open [channel (create-channel)]
-       (.basicPublish channel exchange-name routing-key nil (utf-payload message-object)))))
+       (basic-publish channel exchange-name routing-key (amqp-properties high-priority?) (utf-payload message-object)))))
 
 (defn delivery-from [channel consumer]
   (let [delivery (.nextDelivery consumer)]    
