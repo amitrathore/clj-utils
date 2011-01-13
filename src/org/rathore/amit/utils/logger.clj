@@ -1,4 +1,5 @@
 (ns org.rathore.amit.utils.logger
+  (:refer-clojure :exclude [spit])
   (:import (java.io FileWriter BufferedWriter File)
            (java.net InetAddress)
            (org.productivity.java.syslog4j Syslog))

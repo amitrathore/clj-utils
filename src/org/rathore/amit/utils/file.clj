@@ -1,4 +1,5 @@
-(ns org.rathore.amit.utils.file)
+(ns org.rathore.amit.utils.file
+  (:refer-clojure :exclude [spit]))
 
 (import '(java.io FileWriter BufferedWriter File))
 (import '(java.io FileWriter FileReader))
