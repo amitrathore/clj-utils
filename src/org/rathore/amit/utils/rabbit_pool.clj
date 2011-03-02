@@ -11,7 +11,6 @@
 (def *POOL* (atom nil))
 (def *MAX-POOL-SIZE* 10)
 (def *MAX-IDLE-SIZE* 10)
-(def *POOL-EVICTION-RUN-EVERY-MILLIS* 60000)
 
 (declare connection-valid?)
 
@@ -46,7 +45,6 @@
         p (doto (GenericObjectPool. factory)
             (.setMaxActive *MAX-POOL-SIZE*)
             (.setLifo false)
-            (.setTimeBetweenEvictionRunsMillis *POOL-EVICTION-RUN-EVERY-MILLIS*)
             (.setWhenExhaustedAction GenericObjectPool/WHEN_EXHAUSTED_BLOCK)
             (.setMaxIdle *MAX-IDLE-SIZE*)
             (.setTestWhileIdle true))]
