@@ -21,7 +21,6 @@
   (Thread/sleep (* 1000 n)))
 
 (defn create-channel-guaranteed []
-  ;;(log-message "[Rabbit: active idle max]" (pool-status))
   (let [c (get-connection-from-pool)] ;;is outside try, so rabbit-down-exception bubbles up
     (try 
      (let [ch (.createChannel c)]
